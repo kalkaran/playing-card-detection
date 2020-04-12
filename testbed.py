@@ -509,7 +509,7 @@ def card_prep2():
             break
 
 
-card_prep2()
+#card_prep2()
 
 def card_extract(img, output_fn=None):
     #going to try to count pixels for zoom, - pixels to mm is 24
@@ -524,8 +524,8 @@ def card_extract(img, output_fn=None):
 
     # We convert the measures from mm to pixels: multiply by an arbitrary factor 'zoom'
     # You shouldn't need to change this
-    zoom = 24
-    #zoom = 4
+    #zoom = 24
+    zoom = 4
     cardW *= zoom
     cardH *= zoom
     cornerXmin = int(cornerXmin * zoom)
@@ -631,7 +631,7 @@ def extract_all():
         for value in card_values:
 
             card_name = value + suit
-            print("extracting" + card_name)
+            print("extracting: " + card_name)
             file = os.path.join(dir, card_name + "." + extension)
             output_dir = os.path.join(imgs_dir, card_name)
             if not os.path.isdir(output_dir):
@@ -927,21 +927,48 @@ def findHull(img, corner=refCornerHL, debug=True):
             return None
     if ok == False:
         return None
-    cv2.imshow("Zone", zone)
-    cv2.imshow("Image", img)
-    key = cv2.waitKey(0)
+    # cv2.imshow("Zone", zone)
+    # cv2.imshow("Image", img)
+    # key = cv2.waitKey(0)
     return hull_in_img
+
+
+#attempting to check all hulls with following function
+def Hull_all():
+    card_suits = ['s', 'h', 'd', 'c']
+    card_values = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2']
+
+    dir = "data/cards/"
+    extension = "jpg"
+    for suit in card_suits:
+        for value in card_values:
+
+            card_name = value + suit
+            print("Hullings: " + card_name)
+            file = os.path.join(dir, card_name + "." + extension)
+            output_dir = os.path.join(imgs_dir, img_dir, card_name)
+            if not os.path.isdir(output_dir):
+                os.makedirs(output_dir)
+            output_file = output_dir + "/" + card_name + ".jpg"
+            img = cv2.imread(file)
+            card_extract(img, output_file)
+
+
+
+
+
 
 
 
 def main():
     print("main")
     # #to extra cards from dataset
-    # #extract_all()
+    #extract_all()
     # #to find hulls. - requires cards to be extracted.
-    # imghull = cv2.imread("./data/cards/2c/2c.jpg")
-    # cv2.imshow("orig", imghull)
-    # findHull(imghull)
+    imghull = cv2.imread("./data/cards/As/As.jpg")
+    cv2.imshow("orig", imghull)
+    findHull(imghull)
+
 
 
 
