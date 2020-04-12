@@ -24,18 +24,8 @@ tar xf dtd-r1.0.1.tar.gz to dtd folder.
 
 """
 
+cv2_resource_path="./venv/lib/python3.7/site-packages/cv2/data/"
 
-"""
-Various test images paths:
-
-    #img=cv2.imread("./test/all_mads.jpg")
-    #img=cv2.imread("./test/depositphotos_184840322-stock-photo-single-spades-playing-card-gamble.jpg")
-    #img=cv2.imread("./test/96066795-single-of-spades-playing-card-for-gamble-playing-cards-2-isolated-on-black-background-great-for-any-.jpg")
-    #img=cv2.imread("./test/CW_Cards_Africanqueen.jpg")
-    squashpath = "./test/squash2.jpg"
-    squash = cv2.imread(squashpath)
-    
-"""
 data_dir="data" # Directory that will contain all kinds of data (the data we download and the data we generate)
 
 if not os.path.isdir(data_dir):
@@ -55,7 +45,19 @@ cards_pck_fn=data_dir+"/cards.pck"
 imgW=720
 imgH=720
 
-cv2_resource_path="./venv/lib/python3.7/site-packages/cv2/data/"
+"""
+Various test images paths:
+
+    #img=cv2.imread("./test/all_mads.jpg")
+    #img=cv2.imread("./test/depositphotos_184840322-stock-photo-single-spades-playing-card-gamble.jpg")
+    #img=cv2.imread("./test/96066795-single-of-spades-playing-card-for-gamble-playing-cards-2-isolated-on-black-background-great-for-any-.jpg")
+    #img=cv2.imread("./test/CW_Cards_Africanqueen.jpg")
+    squashpath = "./test/squash2.jpg"
+    squash = cv2.imread(squashpath)
+    
+"""
+
+
 
 
 
@@ -676,31 +678,6 @@ def augment_function(img):
 #this function is taken from someone else
 #adding some variables to from the jupyter notebook to fix function
 
-data_dir="data" # Directory that will contain all kinds of data (the data we download and the data we generate)
-
-if not os.path.isdir(data_dir):
-    os.makedirs(data_dir)
-
-card_suits=['s','h','d','c']
-card_values=['A','K','Q','J','10','9','8','7','6','5','4','3','2']
-
-# Pickle file containing the background images from the DTD
-backgrounds_pck_fn=data_dir+"/backgrounds.pck"
-
-# Pickle file containing the card images
-cards_pck_fn=data_dir+"/cards.pck"
-
-
-# imgW,imgH: dimensions of the generated dataset images
-imgW=720
-imgH=720
-
-
-
-
-
-
-
 """
 This is a test function to find the value part of the card
 looks like the the corner it is finding is way off.
@@ -811,7 +788,7 @@ refCornerLR=np.array([[cardW-cornerXmax,cardH-cornerYmax],
 refCorners=np.array([refCornerHL,refCornerLR])
 
 
-def findHull(img, corner=refCornerHL, debug=True):
+def findHull(img, corner=refCornerHL, debug="no"):
     """
         this function is taken from Jupyternotebook.
         Find in the zone 'corner' of image 'img' and return, the convex hull delimiting
@@ -933,28 +910,58 @@ def findHull(img, corner=refCornerHL, debug=True):
     return hull_in_img
 
 
-#attempting to check all hulls with following function
-def Hull_all():
-    card_suits = ['s', 'h', 'd', 'c']
-    card_values = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2']
 
-    dir = "data/cards/"
-    extension = "jpg"
+
+
+class Cards():
+    def __init__(self, cards_pck_fn=cards_pck_fn):
+        self._cards = pickle.load(open(cards_pck_fn, 'rb'))
+        # self._cards is a dictionary where keys are card names (ex:'Kc') and values are lists of (img,hullHL,hullLR)
+        self._nb_cards_by_value = {k: len(self._cards[k]) for k in self._cards}
+        print("Nb of cards loaded per name :", self._nb_cards_by_value)
+
+
+class Backgrounds():
+    def __init__(self, backgrounds_pck_fn=backgrounds_pck_fn):
+        self._images = pickle.load(open(backgrounds_pck_fn, 'rb'))
+        self._nb_images = len(self._images)
+        print("Nb of images loaded :", self._nb_images)
+
+
+
+
+
+def pickle_this():
+    imgs_dir = "data/cards"
+
+    cards = {}
     for suit in card_suits:
         for value in card_values:
-
             card_name = value + suit
-            print("Hullings: " + card_name)
-            file = os.path.join(dir, card_name + "." + extension)
-            output_dir = os.path.join(imgs_dir, img_dir, card_name)
-            if not os.path.isdir(output_dir):
-                os.makedirs(output_dir)
-            output_file = output_dir + "/" + card_name + ".jpg"
-            img = cv2.imread(file)
-            card_extract(img, output_file)
+            card_dir = os.path.join(imgs_dir, card_name)
+            if not os.path.isdir(card_dir):
+                print(f"!!! {card_dir} does not exist !!!")
+                continue
+            cards[card_name] = []
+            for f in glob(card_dir + "/*.jpg"):
+                img = cv2.imread(f, cv2.IMREAD_UNCHANGED)
+                hullHL = findHull(img, refCornerHL, debug="no")
+                if hullHL is None:
+                    print(f"File {f} not used.")
+                    continue
+                # hullLR = findHull(img, refCornerLR, debug="no")
+                # if hullLR is None:
+                #     print(f"File {f} not used.")
+                #     continue
+                # We store the image in "rgb" format (we don't need opencv anymore)
+                img = cv2.cvtColor(img, cv2.COLOR_BGRA2RGBA)
+                cards[card_name].append((img, hullHL))
+            print(f"Nb images for {card_name} : {len(cards[card_name])}")
 
+    print("Saved in :", cards_pck_fn)
+    pickle.dump(cards, open(cards_pck_fn, 'wb'))
 
-
+    cv2.destroyAllWindows()
 
 
 
@@ -962,12 +969,14 @@ def Hull_all():
 
 def main():
     print("main")
+    #cards = Cards()
+    #backgrounds = Backgrounds()
     # #to extra cards from dataset
     #extract_all()
     # #to find hulls. - requires cards to be extracted.
-    imghull = cv2.imread("./data/cards/As/As.jpg")
-    cv2.imshow("orig", imghull)
-    findHull(imghull)
+    # imghull = cv2.imread("./data/cards/As/As.jpg")
+    # cv2.imshow("orig", imghull)
+    # findHull(imghull)
 
 
 
