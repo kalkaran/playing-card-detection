@@ -391,9 +391,9 @@ def getContours_dataset2(img, imgContour):
 
 
 def card_prep():
-    img1 = cv2.imread("./dataset2_blackbackground/2c.jpg")
-    img2 = cv2.imread("./dataset2_blackbackground/2h.jpg")
-    img3 = cv2.imread("./dataset2_blackbackground/Ad.jpg")
+    img1 = cv2.imread("./dataset2_blackbackground/4d.jpg")
+    img2 = cv2.imread("./dataset2_blackbackground/As.jpg")
+    img3 = cv2.imread("./dataset2_blackbackground/Ac.jpg")
     imgStack = stackImages(0.4,[img1,img2,img3])
 
     def callback(foo):
@@ -455,11 +455,11 @@ def card_prep():
 
 
 def card_prep2():
+    #img1 = cv2.imread("./dataset2_blackbackground/4d.jpg")
+    #img1 = cv2.imread("./dataset2_blackbackground/As.jpg")
     img1 = cv2.imread("./dataset2_blackbackground/2c.jpg")
-    img2 = cv2.imread("./dataset2_blackbackground/2h.jpg")
-    img3 = cv2.imread("./dataset2_blackbackground/Ad.jpg")
-    imgStack = stackImages(0.4, [img1, img2, img3])
-    cv2.imshow("orginal", imgStack)
+    #imgStack = stackImages(0.4, [img1, img2, img3])
+    #cv2.imshow("orginal", imgStack)
 
 
     def callback(foo):
@@ -489,7 +489,7 @@ def card_prep2():
         print('apertureSize: {}'.format(apSize))
         print('L2gradient: {}'.format(norm_flag))
 
-        cv2.imshow("orginal", imgStack)
+        #cv2.imshow("orginal", imgStack)
         #gray = cv2.cvtColor(imgStack, cv2.COLOR_BGRA2GRAY)
         #gray = cv2.bilateralFilter(gray, 5, 75, 75)
         imgGray = cv2.cvtColor(img1, cv2.COLOR_BGRA2GRAY)
@@ -501,15 +501,18 @@ def card_prep2():
 
         getContours(imgCanny, imgContours, imgBlank)
 
-        cv2.imshow('Contours', imgContours)
-        cv2.imshow('imgBlank', imgBlank)
-        #imgStack1 = stackImages(.7, [img1, imgBlur, imgCanny, imgContours, imgBlank])
-        #cv2.imshow('stack', imgStack1)
-        if cv2.waitKey(1000) & 0xFF == ord('q'):
+        #cv2.imshow('Contours', imgContours)
+        #cv2.imshow('imgBlank', imgBlank)
+        imgStack1 = stackImages(.7, [img1, imgBlur, imgCanny, imgContours, imgBlank])
+        cv2.imshow('stack', imgStack1)
+        if cv2.waitKey(2000) & 0xFF == ord('q'):
             break
 
 
+card_prep2()
+
 def card_extract(img, output_fn=None):
+    #going to try to count pixels for zoom, - pixels to mm is 24
     #card settings:
     # nealcards
     cardW = 56
@@ -521,7 +524,8 @@ def card_extract(img, output_fn=None):
 
     # We convert the measures from mm to pixels: multiply by an arbitrary factor 'zoom'
     # You shouldn't need to change this
-    zoom = 4
+    zoom = 24
+    #zoom = 4
     cardW *= zoom
     cardH *= zoom
     cornerXmin = int(cornerXmin * zoom)
@@ -560,7 +564,8 @@ def card_extract(img, output_fn=None):
 
     imgGray = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
     imgBlur = cv2.GaussianBlur(imgGray, (7, 7), 1)
-    imgCanny = cv2.Canny(imgBlur, 0, 197, apertureSize=3)
+    imgCanny = cv2.Canny(imgBlur, 0, 197, apertureSize=3, L2gradient=True)
+    #imgCanny = cv2.Canny(imgBlur, 0, 197, apertureSize=3)
     contours, hierachy = cv2.findContours(imgCanny, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_NONE)
     cnt = sorted(contours, key=cv2.contourArea, reverse=True)[0]
     rect=cv2.minAreaRect(cnt)
@@ -609,9 +614,9 @@ def card_extract(img, output_fn=None):
 
 # img1 = cv2.imread("./dataset2_blackbackground/2c.jpg")
 #img2 = cv2.imread("./dataset2_blackbackground/2h.jpg")
-# img3 = cv2.imread("./dataset2_blackbackground/Ad.jpg")
-#
-# cardexample = card_extract(img1)
+# img3 = cv2.imread("./dataset2_blackbackground/4d.jpg")
+# #
+# cardexample = card_extract(img3)
 # cv2.imshow('Contours', cardexample)
 # cv2.waitKey(0)
 
@@ -896,7 +901,7 @@ def findHull(img, corner=refCornerHL, debug=True):
         hull = cv2.convexHull(concat_contour)
         hull_area = cv2.contourArea(hull)
         # If the area of the hull is to small or too big, there may be a problem
-        min_hull_area = 900  # TWEAK, deck and 'zoom' dependant
+        min_hull_area = 800  # TWEAK, deck and 'zoom' dependant
         max_hull_area = 2120  # TWEAK, deck and 'zoom' dependant
         if hull_area < min_hull_area or hull_area > max_hull_area:
             ok = False
@@ -922,17 +927,21 @@ def findHull(img, corner=refCornerHL, debug=True):
             return None
     if ok == False:
         return None
-
+    cv2.imshow("Zone", zone)
+    cv2.imshow("Image", img)
+    key = cv2.waitKey(0)
     return hull_in_img
 
 
 
 def main():
-    #to extra cards from dataset
-    #extract_all()
-    #to find hulls. - requires cards to be extracted.
-    imghull = cv2.imread("./data/cards/2c/2c.jpg")
-    findHull(imghull)
+    print("main")
+    # #to extra cards from dataset
+    # #extract_all()
+    # #to find hulls. - requires cards to be extracted.
+    # imghull = cv2.imread("./data/cards/2c/2c.jpg")
+    # cv2.imshow("orig", imghull)
+    # findHull(imghull)
 
 
 
