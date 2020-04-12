@@ -832,11 +832,17 @@ def findHull(img, corner=refCornerHL, debug=True):
     kernel = np.ones((3, 3), np.uint8)
     corner = corner.astype(np.int)
 
+    #Here will will fix the zoom.
+    corner[0][0] = corner[0][0] * factor_x
+    corner[0][1] = corner[0][1] * factor_y
+    corner[2][0] = corner[2][0] * factor_x
+    corner[2][1] = corner[2][1] * factor_y
+
     # We will focus on the zone of 'img' delimited by 'corner'
-    x1 = int(corner[0][0] * factor_x)
-    y1 = int(corner[0][1] * factor_y)
-    x2 = int(corner[2][0] * factor_x)
-    y2 = int(corner[2][1] * factor_y)
+    x1 = int(corner[0][0])
+    y1 = int(corner[0][1])
+    x2 = int(corner[2][0])
+    y2 = int(corner[2][1])
     w = x2 - x1
     h = y2 - y1
     zone = img[y1:y2, x1:x2].copy()
@@ -872,6 +878,7 @@ def findHull(img, corner=refCornerHL, debug=True):
         cy = int(M['m01'] / M['m00'])
         #  abs(w/2-cx)<w*0.3 and abs(h/2-cy)<h*0.4 : TWEAK, the idea here is to keep only the contours which are closed to the center of the zone
         if area >= min_area and abs(w / 2 - cx) < w * 0.3 and abs(h / 2 - cy) < h * 0.4 and solidity > min_solidity:
+            ## DEBUG AREA
             if debug != "no":
                 cv2.drawContours(zone, [c], 0, (255, 0, 0), -1)
             if concat_contour is None:
@@ -889,7 +896,7 @@ def findHull(img, corner=refCornerHL, debug=True):
         hull = cv2.convexHull(concat_contour)
         hull_area = cv2.contourArea(hull)
         # If the area of the hull is to small or too big, there may be a problem
-        min_hull_area = 940  # TWEAK, deck and 'zoom' dependant
+        min_hull_area = 900  # TWEAK, deck and 'zoom' dependant
         max_hull_area = 2120  # TWEAK, deck and 'zoom' dependant
         if hull_area < min_hull_area or hull_area > max_hull_area:
             ok = False
@@ -898,7 +905,6 @@ def findHull(img, corner=refCornerHL, debug=True):
         # So far, the coordinates of the hull are relative to 'zone'
         # We need the coordinates relative to the image -> 'hull_in_img'
         hull_in_img = hull + corner[0]
-
     else:
         ok = False
 
@@ -926,7 +932,7 @@ def main():
     #extract_all()
     #to find hulls. - requires cards to be extracted.
     imghull = cv2.imread("./data/cards/2c/2c.jpg")
-    cv2.imshow("handled", findHull(imghull))
+    findHull(imghull)
 
 
 
