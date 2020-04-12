@@ -512,12 +512,12 @@ def card_prep2():
 def card_extract(img, output_fn=None):
     #card settings:
     # nealcards
-    cardW = 57
-    cardH = 87
+    cardW = 56
+    cardH = 86
     cornerXmin = 2
     cornerXmax = 8
     cornerYmin = 4
-    cornerYmax = 18
+    cornerYmax = 21
 
     # We convert the measures from mm to pixels: multiply by an arbitrary factor 'zoom'
     # You shouldn't need to change this
@@ -626,6 +626,7 @@ def extract_all():
         for value in card_values:
 
             card_name = value + suit
+            print("extracting" + card_name)
             file = os.path.join(dir, card_name + "." + extension)
             output_dir = os.path.join(imgs_dir, card_name)
             if not os.path.isdir(output_dir):
@@ -639,6 +640,10 @@ def extract_all():
 # img2=cv2.imread("data/cards/10s/10s.jpg")
 # cv2.imshow("test",img2)
 # cv2.waitKey(0)
+
+
+
+
 
 def augment_images():
     print("aug")
@@ -688,12 +693,13 @@ imgH=720
 
 
 #nealcards
-cardW=57
-cardH=87
-cornerXmin=10
+""" NB. the corners on our card set is not consistent. so I will choose the most inclusive area."""
+cardW=56
+cardH=86
+cornerXmin=2
 cornerXmax=8
 cornerYmin=4
-cornerYmax=50
+cornerYmax=21
 
 refCard=np.array([[0,0],[cardW,0],[cardW,cardH],[0,cardH]],dtype=np.float32)
 
@@ -727,7 +733,7 @@ def findHull(img, corner=refCornerHL, debug="no"):
     w = x2 - x1
     h = y2 - y1
     zone = img[y1:y2, x1:x2].copy()
-    im
+
 
     strange_cnt = np.zeros_like(zone)
     gray = cv2.cvtColor(zone, cv2.COLOR_BGR2GRAY)
@@ -805,8 +811,13 @@ def findHull(img, corner=refCornerHL, debug="no"):
 
 
 
+def main():
+    #to extra cards from dataset
+    #extract_all()
 
 
+
+main()
 
 
 
