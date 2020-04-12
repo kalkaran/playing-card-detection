@@ -45,6 +45,36 @@ cards_pck_fn=data_dir+"/cards.pck"
 imgW=720
 imgH=720
 
+
+xml_body_1="""<annotation>
+        <folder>FOLDER</folder>
+        <filename>{FILENAME}</filename>
+        <path>{PATH}</path>
+        <source>
+                <database>Unknown</database>
+        </source>
+        <size>
+                <width>{WIDTH}</width>
+                <height>{HEIGHT}</height>
+                <depth>3</depth>
+        </size>
+"""
+xml_object=""" <object>
+                <name>{CLASS}</name>
+                <pose>Unspecified</pose>
+                <truncated>0</truncated>
+                <difficult>0</difficult>
+                <bndbox>
+                        <xmin>{XMIN}</xmin>
+                        <ymin>{YMIN}</ymin>
+                        <xmax>{XMAX}</xmax>
+                        <ymax>{YMAX}</ymax>
+                </bndbox>
+        </object>
+"""
+xml_body_2="""</annotation>        
+"""
+
 """
 Various test images paths:
 
@@ -878,8 +908,8 @@ def findHull(img, corner=refCornerHL, debug="no"):
         hull = cv2.convexHull(concat_contour)
         hull_area = cv2.contourArea(hull)
         # If the area of the hull is to small or too big, there may be a problem
-        min_hull_area = 800  # TWEAK, deck and 'zoom' dependant
-        max_hull_area = 2120  # TWEAK, deck and 'zoom' dependant
+        min_hull_area = 750  # TWEAK, deck and 'zoom' dependant
+        max_hull_area = 1500  # TWEAK, deck and 'zoom' dependant
         if hull_area < min_hull_area or hull_area > max_hull_area:
             ok = False
             if debug != "no":
@@ -945,7 +975,7 @@ def pickle_this():
             cards[card_name] = []
             for f in glob(card_dir + "/*.jpg"):
                 img = cv2.imread(f, cv2.IMREAD_UNCHANGED)
-                hullHL = findHull(img, refCornerHL, debug="no")
+                hullHL = findHull(img)
                 if hullHL is None:
                     print(f"File {f} not used.")
                     continue
@@ -967,16 +997,22 @@ def pickle_this():
 
 
 
+
+
+
 def main():
     print("main")
-    #cards = Cards()
-    #backgrounds = Backgrounds()
+    cards = Cards()
+    backgrounds = Backgrounds()
+    #pickle_this()
     # #to extra cards from dataset
     #extract_all()
     # #to find hulls. - requires cards to be extracted.
-    # imghull = cv2.imread("./data/cards/As/As.jpg")
+    # imghull = cv2.imread("./data/cards/5c/5c.jpg")
     # cv2.imshow("orig", imghull)
-    # findHull(imghull)
+    # findHull(imghull, debug=True)
+
+
 
 
 
