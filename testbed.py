@@ -720,7 +720,9 @@ refCorners=np.array([refCornerHL,refCornerLR])
 
 
 
-"""looks like the the corner it is finding is way off.
+"""
+This is a test function to find the value part of the card
+looks like the the corner it is finding is way off.
 will have to code my own solution
 will start with upper left.
 
@@ -738,28 +740,38 @@ def findHull_imageAnalysis(img, corner):
     cardW = 56
     cardH = 86
 
-    factor_y = y / cardH
-    factor_x = x / cardW
+    factor_y = int(y / cardH)
+    factor_x = int(x / cardW)
 
-    cornerXmin = 2
-    cornerXmax = 8
+
+    cornerXmin = 3
+    cornerXmax = 9
     cornerYmin = 4
-    cornerYmax = 25
+    cornerYmax = 21
 
     #coordinates
     x1 = int(factor_x * cornerXmin)
     x2 = int(factor_x * cornerXmax)
     y1 = int(factor_y * cornerYmin)
     y2 = int(factor_y * cornerYmax)
+
+    cornerA = [x1, y1]
+    cornerB = [x1, y2]
+    cornerC = [x2, y1]
+    cornerD = [x2, y2]
+
     #top left corner.
     """ NB. the corners on our card set is not consistent. so I will choose the most inclusive area."""
     print("x1 " + str(x1))
     print("x2 " + str(x2))
-    print("y1 " + str(y1))
+    print("y2 " + str(y1))
     print("y1 " + str(y2))
 
 
-
+    print(cornerA)
+    print(cornerB)
+    print(cornerC)
+    print(cornerD)
 
     # We will focus on the zone of 'img' delimited by 'corner'
     # x1 = int(corner[0][0])
@@ -772,16 +784,20 @@ def findHull_imageAnalysis(img, corner):
     # print("y1 " + str(y2))
     w = x2 - x1
     h = y2 - y1
-    zone = img[y1:y2, x1:x2].copy()
+    zone = img[y1:y2,x1:x2]
+    print(zone.shape)
 
     return zone
 
-imghull = cv2.imread("./data/cards/2c/2c.jpg")
+imghull = cv2.imread("./data/cards/Kh/Kh.jpg")
 print(type(imghull))
 # cv2.imshow("preimg",imghull)
 # cv2.waitKey(0)
-cv2.imshow("Image Corner Analysis", findHull_imageAnalysis(imghull, refCornerLR))
-cv2.waitKey(0)
+#cv2.imshow("I", findHull_imageAnalysis(imghull, refCornerLR))
+cv2.imwrite("./test/croptest.jpg",findHull_imageAnalysis(imghull, refCornerLR))
+
+
+
 
 
 
