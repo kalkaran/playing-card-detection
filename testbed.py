@@ -789,14 +789,14 @@ def findHull_imageAnalysis(img, corner):
 
     return zone
 
-imghull = cv2.imread("./data/cards/Kh/Kh.jpg")
-print(type(imghull))
-# cv2.imshow("preimg",imghull)
-# cv2.waitKey(0)
-#cv2.imshow("I", findHull_imageAnalysis(imghull, refCornerLR))
-cv2.imwrite("./test/croptest.jpg",findHull_imageAnalysis(imghull, refCornerLR))
-
-
+# imghull = cv2.imread("./data/cards/Kh/Kh.jpg")
+# print(type(imghull))
+# # cv2.imshow("preimg",imghull)
+# # cv2.waitKey(0)
+# #cv2.imshow("I", findHull_imageAnalysis(imghull, refCornerLR))
+# cv2.imwrite("./test/croptest.jpg",findHull_imageAnalysis(imghull, refCornerLR))
+#
+#
 
 
 
