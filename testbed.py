@@ -693,7 +693,8 @@ imgH=720
 
 
 #nealcards
-""" NB. the corners on our card set is not consistent. so I will choose the most inclusive area."""
+""" NB. the corners on our card set is not consistent. so I will choose the most inclusive area.
+further the measurements asked seem wrong Ymax should be inclusive of Ymin."""
 cardW=56
 cardH=86
 cornerXmin=2
@@ -705,24 +706,70 @@ refCard=np.array([[0,0],[cardW,0],[cardW,cardH],[0,cardH]],dtype=np.float32)
 
 refCardRot=np.array([[cardW,0],[cardW,cardH],[0,cardH],[0,0]],dtype=np.float32)
 
-refCornerHL=np.array([[cornerXmin,cornerYmin],[cornerXmax,cornerYmin],[cornerXmax,cornerYmax],[cornerXmin,cornerYmax]],dtype=np.float32)
+refCornerHL=np.array([[cornerXmin,cornerYmin],
+                      [cornerXmax,cornerYmin],
+                      [cornerXmax,cornerYmax],
+                      [cornerXmin,cornerYmax]],dtype=np.float32)
 
-refCornerLR=np.array([[cardW-cornerXmax,cardH-cornerYmax],[cardW-cornerXmin,cardH-cornerYmax],[cardW-cornerXmin,cardH-cornerYmin],[cardW-cornerXmax,cardH-cornerYmin]],dtype=np.float32)
+refCornerLR=np.array([[cardW-cornerXmax,cardH-cornerYmax],
+                      [cardW-cornerXmin,cardH-cornerYmax],
+                      [cardW-cornerXmin,cardH-cornerYmin],
+                      [cardW-cornerXmax,cardH-cornerYmin]],dtype=np.float32)
 
 refCorners=np.array([refCornerHL,refCornerLR])
 
 
 
-#looks like the the corner it is finding is way off.
+"""looks like the the corner it is finding is way off.
+will have to code my own solution
+will start with upper left.
+
+further it looks like the corner explanation image in the original is wrong.
+
+"""
 def findHull_imageAnalysis(img, corner):
     kernel = np.ones((3, 3), np.uint8)
     corner = corner.astype(np.int)
+    print(img.shape)
+
+    y = img.shape[0]
+    x = img.shape[1]
+
+    cardW = 56
+    cardH = 86
+
+    factor_y = y / cardH
+    factor_x = x / cardW
+
+    cornerXmin = 2
+    cornerXmax = 8
+    cornerYmin = 4
+    cornerYmax = 25
+
+    #coordinates
+    x1 = int(factor_x * cornerXmin)
+    x2 = int(factor_x * cornerXmax)
+    y1 = int(factor_y * cornerYmin)
+    y2 = int(factor_y * cornerYmax)
+    #top left corner.
+    """ NB. the corners on our card set is not consistent. so I will choose the most inclusive area."""
+    print("x1 " + str(x1))
+    print("x2 " + str(x2))
+    print("y1 " + str(y1))
+    print("y1 " + str(y2))
+
+
+
 
     # We will focus on the zone of 'img' delimited by 'corner'
-    x1 = int(corner[0][0])
-    y1 = int(corner[0][1])
-    x2 = int(corner[2][0])
-    y2 = int(corner[2][1])
+    # x1 = int(corner[0][0])
+    # y1 = int(corner[0][1])
+    # x2 = int(corner[2][0])
+    # y2 = int(corner[2][1])
+    # print("x1 " + str(x1))
+    # print("x2 " + str(x2))
+    # print("y1 " + str(y1))
+    # print("y1 " + str(y2))
     w = x2 - x1
     h = y2 - y1
     zone = img[y1:y2, x1:x2].copy()
