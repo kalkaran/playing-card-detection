@@ -1058,13 +1058,13 @@ decalX = int((imgW - cardW) / 2)
 decalY = int((imgH - cardH) / 2)
 
 
-print("decalX = int((imgW - cardW) / 2)")
-print(decalX)
-print(decalX + cardW)
-print("decalY = int((imgH - cardH) / 2)")
-print(decalY)
-print(decalY + cardH)
-
+# print("decalX = int((imgW - cardW) / 2)")
+# print(decalX)
+# print(decalX + cardW)
+# print("decalY = int((imgH - cardH) / 2)")
+# print(decalY)
+# print(decalY + cardH)
+#
 
 
 # Scenario with 3 cards : decal values are different
@@ -1196,12 +1196,18 @@ class Scene:
         kpsa1 = hull_to_kps(hulla1)
         kpsa2 = hull_to_kps(hulla2)
 
+
         # Randomly transform 1st card
         self.img1 = np.zeros((imgH, imgW, 4), dtype=np.uint8)
-        # (b, g, r) = cv2.split(img1)
-        # img1 = cv2.merge([r, g, b])
-        self.img1[decalY:(decalY + cardH), decalX:(decalX + cardW), :] = img1
+        #adding code here
+        # here is the issue, looks like img2 might be too big.
+        # have seen issues before with size differences
+        cut = self.img1[decalY:(decalY + cardH), decalX:(decalX + cardW), :]
+        cutshape = cut.shape
+        cut1 = cutshape[0]
+        cut2 = cutshape[1]
 
+        self.img1[decalY:(decalY + cardH), decalX:(decalX + cardW), :] = cv2.resize(img1, (cut2,cut1))
         self.img1, self.lkps1, self.bbs1 = augment(self.img1, [cardKP, kpsa1], transform_1card)
 
         # Randomly transform 2nd card. We want that card 2 does not partially cover a corner of 1 card.
@@ -1209,8 +1215,6 @@ class Scene:
         while True:
             self.listbba = []
             self.img2 = np.zeros((imgH, imgW, 4), dtype=np.uint8)
-            #here is the issue, looks like img2 might be too big.
-            #have seen issues before with size differences
             self.img2[decalY:decalY + cardH, decalX:decalX + cardW, :] = img2
             self.img2, self.lkps2, self.bbs2 = augment(self.img2, [cardKP, kpsa2], transform_1card)
 
