@@ -1209,6 +1209,8 @@ class Scene:
         while True:
             self.listbba = []
             self.img2 = np.zeros((imgH, imgW, 4), dtype=np.uint8)
+            #here is the issue, looks like img2 might be too big.
+            #have seen issues before with size differences
             self.img2[decalY:decalY + cardH, decalX:decalX + cardW, :] = img2
             self.img2, self.lkps2, self.bbs2 = augment(self.img2, [cardKP, kpsa2], transform_1card)
 
