@@ -46,6 +46,16 @@ imgW=720
 imgH=720
 
 
+#nealcards
+""" NB. the corners on our card set is not consistent. so I will choose the most inclusive area.
+further the measurements asked seem wrong Ymax should be inclusive of Ymin."""
+cardW=56
+cardH=86
+cornerXmin = 3
+cornerXmax = 9
+cornerYmin = 4
+cornerYmax = 21
+
 xml_body_1="""<annotation>
         <folder>FOLDER</folder>
         <filename>{FILENAME}</filename>
@@ -788,15 +798,7 @@ def findHull_imageAnalysis(img, corner):
 
 
 
-#nealcards
-""" NB. the corners on our card set is not consistent. so I will choose the most inclusive area.
-further the measurements asked seem wrong Ymax should be inclusive of Ymin."""
-cardW=56
-cardH=86
-cornerXmin = 3
-cornerXmax = 9
-cornerYmin = 4
-cornerYmax = 21
+
 
 
 
@@ -949,6 +951,11 @@ class Cards():
         # self._cards is a dictionary where keys are card names (ex:'Kc') and values are lists of (img,hullHL,hullLR)
         self._nb_cards_by_value = {k: len(self._cards[k]) for k in self._cards}
         print("Nb of cards loaded per name :", self._nb_cards_by_value)
+    def get_random(self, card_name=None, display=False):
+        if card_name is None:
+            card_name= random.choice(list(self._cards.keys()))
+        card,hull1=self._cards[card_name][random.randint(0,self._nb_cards_by_value[card_name]-1)]
+        return card,card_name,hull1
 
 
 class Backgrounds():
@@ -956,7 +963,9 @@ class Backgrounds():
         self._images = pickle.load(open(backgrounds_pck_fn, 'rb'))
         self._nb_images = len(self._images)
         print("Nb of images loaded :", self._nb_images)
-
+    def get_random(self, display=False):
+        bg=self._images[random.randint(0,self._nb_images-1)]
+        return bg
 
 
 
@@ -1008,14 +1017,55 @@ def create_voc_xml(xml_file, img_file, listbba, display=False):
         if display: print("New xml", xml_file)
 
 
+def give_me_filename(dirname, suffixes, prefix=""):
+    """
+        Function that returns a filename or a list of filenames in directory 'dirname'
+        that does not exist yet. If 'suffixes' is a list, one filename per suffix in 'suffixes':
+        filename = dirname + "/" + prefix + random number + "." + suffix
+        Same random number for all the file name
+        Ex:
+        > give_me_filename("dir","jpg", prefix="prefix")
+        'dir/prefix408290659.jpg'
+        > give_me_filename("dir",["jpg","xml"])
+        ['dir/877739594.jpg', 'dir/877739594.xml']
+    """
+    if not isinstance(suffixes, list):
+        suffixes = [suffixes]
+
+    suffixes = [p if p[0] == '.' else '.' + p for p in suffixes]
+
+    while True:
+        bname = "%09d" % random.randint(0, 999999999)
+        fnames = []
+        for suffix in suffixes:
+            fname = os.path.join(dirname, prefix + bname + suffix)
+            if not os.path.isfile(fname):
+                fnames.append(fname)
+
+        if len(fnames) == len(suffixes): break
+
+    if len(fnames) == 1:
+        return fnames[0]
+    else:
+        return fnames
 
 "following code taken from jupyter"
 # Scenario with 2 cards:
 # The original image of a card has the shape (cardH,cardW,4)
 # We first paste it in a zero image of shape (imgH,imgW,4) at position decalX, decalY
-# so that the original image is centerd in the zero image
+# so that the original image is centered in the zero image
 decalX = int((imgW - cardW) / 2)
 decalY = int((imgH - cardH) / 2)
+
+
+print("decalX = int((imgW - cardW) / 2)")
+print(decalX)
+print(decalX + cardW)
+print("decalY = int((imgH - cardH) / 2)")
+print(decalY)
+print(decalY + cardH)
+
+
 
 # Scenario with 3 cards : decal values are different
 decalX3 = int(imgW / 2)
@@ -1090,7 +1140,7 @@ transform_3cards = iaa.Sequential([
 ])
 
 # imgaug transformation for the background
-scaleBg = iaa.Scale({"height": imgH, "width": imgW})
+scaleBg = iaa.Resize({"height": imgH, "width": imgW})
 
 
 def augment(img, list_kps, seq, restart=True):
@@ -1134,24 +1184,25 @@ class BBA:  # Bounding box + annotations
 
 
 class Scene:
-    def __init__(self, bg, img1, class1, hulla1, hullb1, img2, class2, hulla2, hullb2, img3=None, class3=None,
-                 hulla3=None, hullb3=None):
+    """removing hullb"""
+    def __init__(self, bg, img1, class1, hulla1, img2, class2, hulla2, img3=None, class3=None,
+                 hulla3=None):
         if img3 is not None:
-            self.create3CardsScene(bg, img1, class1, hulla1, hullb1, img2, class2, hulla2, hullb2, img3, class3, hulla3,
-                                   hullb3)
+            self.create3CardsScene(bg, img1, class1, hulla1, img2, class2, hulla2, img3, class3, hulla3)
         else:
-            self.create2CardsScene(bg, img1, class1, hulla1, hullb1, img2, class2, hulla2, hullb2)
+            self.create2CardsScene(bg, img1, class1, hulla1, img2, class2, hulla2)
 
-    def create2CardsScene(self, bg, img1, class1, hulla1, hullb1, img2, class2, hulla2, hullb2):
+    def create2CardsScene(self, bg, img1, class1, hulla1, img2, class2, hulla2):
         kpsa1 = hull_to_kps(hulla1)
-        kpsb1 = hull_to_kps(hullb1)
         kpsa2 = hull_to_kps(hulla2)
-        kpsb2 = hull_to_kps(hullb2)
 
         # Randomly transform 1st card
         self.img1 = np.zeros((imgH, imgW, 4), dtype=np.uint8)
-        self.img1[decalY:decalY + cardH, decalX:decalX + cardW, :] = img1
-        self.img1, self.lkps1, self.bbs1 = augment(self.img1, [cardKP, kpsa1, kpsb1], transform_1card)
+        # (b, g, r) = cv2.split(img1)
+        # img1 = cv2.merge([r, g, b])
+        self.img1[decalY:(decalY + cardH), decalX:(decalX + cardW), :] = img1
+
+        self.img1, self.lkps1, self.bbs1 = augment(self.img1, [cardKP, kpsa1], transform_1card)
 
         # Randomly transform 2nd card. We want that card 2 does not partially cover a corner of 1 card.
         # If so, we apply a new random transform to card 2
@@ -1159,7 +1210,7 @@ class Scene:
             self.listbba = []
             self.img2 = np.zeros((imgH, imgW, 4), dtype=np.uint8)
             self.img2[decalY:decalY + cardH, decalX:decalX + cardW, :] = img2
-            self.img2, self.lkps2, self.bbs2 = augment(self.img2, [cardKP, kpsa2, kpsb2], transform_1card)
+            self.img2, self.lkps2, self.bbs2 = augment(self.img2, [cardKP, kpsa2], transform_1card)
 
             # mainPoly2: shapely polygon of card 2
             mainPoly2 = kps_to_polygon(self.lkps2[0].keypoints[0:4])
@@ -1195,21 +1246,17 @@ class Scene:
         self.mask2 = np.stack([mask2] * 3, -1)
         self.final = np.where(self.mask2, self.img2[:, :, 0:3], self.final)
 
-    def create3CardsScene(self, bg, img1, class1, hulla1, hullb1, img2, class2, hulla2, hullb2, img3, class3, hulla3,
-                          hullb3):
+    def create3CardsScene(self, bg, img1, class1, hulla1, img2, class2, hulla2, img3, class3, hulla3):
 
         kpsa1 = hull_to_kps(hulla1, decalX3, decalY3)
-        kpsb1 = hull_to_kps(hullb1, decalX3, decalY3)
         kpsa2 = hull_to_kps(hulla2, decalX3, decalY3)
-        kpsb2 = hull_to_kps(hullb2, decalX3, decalY3)
         kpsa3 = hull_to_kps(hulla3, decalX3, decalY3)
-        kpsb3 = hull_to_kps(hullb3, decalX3, decalY3)
         self.img3 = np.zeros((imgH, imgW, 4), dtype=np.uint8)
         self.img3[decalY3:decalY3 + cardH, decalX3:decalX3 + cardW, :] = img3
-        self.img3, self.lkps3, self.bbs3 = augment(self.img3, [cardKP, kpsa3, kpsb3], trans_rot1)
+        self.img3, self.lkps3, self.bbs3 = augment(self.img3, [cardKP, kpsa3], trans_rot1)
         self.img2 = np.zeros((imgH, imgW, 4), dtype=np.uint8)
         self.img2[decalY3:decalY3 + cardH, decalX3:decalX3 + cardW, :] = img2
-        self.img2, self.lkps2, self.bbs2 = augment(self.img2, [cardKP, kpsa2, kpsb2], trans_rot2)
+        self.img2, self.lkps2, self.bbs2 = augment(self.img2, [cardKP, kpsa2], trans_rot2)
         self.img1 = np.zeros((imgH, imgW, 4), dtype=np.uint8)
         self.img1[decalY3:decalY3 + cardH, decalX3:decalX3 + cardW, :] = img1
 
@@ -1219,7 +1266,7 @@ class Scene:
             if _img3 is None: continue
             _img2, _lkps2, self.bbs2 = augment(self.img2, self.lkps2, det_transform_3cards, False)
             if _img2 is None: continue
-            _img1, self.lkps1, self.bbs1 = augment(self.img1, [cardKP, kpsa1, kpsb1], det_transform_3cards, False)
+            _img1, self.lkps1, self.bbs1 = augment(self.img1, [cardKP, kpsa1], det_transform_3cards, False)
             if _img1 is None: continue
             break
         self.img3 = _img3
@@ -1266,24 +1313,21 @@ class Scene:
 
 def main():
     print("main")
-    #cards = Cards()
-    #backgrounds = Backgrounds()
+    cards = Cards()
+    backgrounds = Backgrounds()
     #pickle_this()
     # #to extra cards from dataset
     #extract_all()
     # #to find hulls. - requires cards to be extracted.
-    imghull = cv2.imread("./data/cards/5c/5c.jpg")
-    cv2.imshow("orig", imghull)
-    findHull(imghull, debug=True)
+    # imghull = cv2.imread("./data/cards/5c/5c.jpg")
+    # cv2.imshow("orig", imghull)
+    # findHull(imghull, debug=True)
+    bg = backgrounds.get_random()
+    img1, card_val1, hulla1= cards.get_random()
+    img2, card_val2, hulla2= cards.get_random()
 
-
-
-
-
-
-
-
-
+    newimg = Scene(bg, img1, card_val1, hulla1, img2, card_val2, hulla2)
+    newimg.write_files("./test/")
 
 
 main()
