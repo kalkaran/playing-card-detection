@@ -51,9 +51,9 @@ imgH=720
 further the measurements asked seem wrong Ymax should be inclusive of Ymin."""
 cardW=56
 cardH=86
-cornerXmin = 3
-cornerXmax = 9
-cornerYmin = 4
+cornerXmin = 2
+cornerXmax = 8
+cornerYmin = 3
 cornerYmax = 21
 
 xml_body_1="""<annotation>
@@ -128,13 +128,13 @@ def imgconversiongray():
     cv2.waitKey(0)
 
 
-
 def imgconversiongauss():
     img = cv2.imread("./test/green_screen.png")
     imgGray = cv2.cvtColor(img, cv2.COLOR_BGRA2GRAY)
     imgBlur = cv2.GaussianBlur(imgGray, (7,7),0)
     cv2.imshow("output",imgBlur)
     cv2.waitKey(0)
+
 
 def imgconversionCanny():
     img = cv2.imread("./test/green_screen.png")
@@ -174,6 +174,7 @@ def imgErosion():
     cv2.imshow("output", imgErosi)
     cv2.waitKey(0)
 
+
 def imageResize():
     img = cv2.imread("./test/green_screen.png")
     print(img.shape)
@@ -192,6 +193,13 @@ def imageCrop():
     cv2.waitKey(0)
 
 
+def imageTrim(img, top=0, bottom=0, left=0, right=0):
+    # - y, then - x.
+    ylength = img.shape[0]
+    xlength = img.shape[1]
+    imgCrop = img[0+top:ylength-bottom, 0+left: xlength-right]
+    imgCrop = cv2.resize(imgCrop,(xlength,ylength))
+    return imgCrop
 
 def createImg():
     #np dimensions, then type = np.uint8 = 0-255
@@ -238,6 +246,9 @@ def warpImage():
     cv2.imshow("outputpic", img)
     cv2.imshow("output", imgOutput)
     cv2.waitKey(0)
+
+
+
 
 def stackimage(img):
     imgHor = np.hstack((img, img))
@@ -553,7 +564,7 @@ def card_prep2():
 
 #card_prep2()
 
-def card_extract(img, output_fn=None):
+def card_extract(img, output_fn=None, crop=0):
     #going to try to count pixels for zoom, - pixels to mm is 24
     #card settings:
     # nealcards
@@ -646,7 +657,9 @@ def card_extract(img, output_fn=None):
 
     # Add the alphachannel to the warped image
     imgwarp[:, :, 3] = alphachannel
-
+    if crop != 0:
+        img1 = imageTrim(imgwarp, crop, crop, crop, crop)
+        imgwarp=img1
     # Save the image to file
     if output_fn is not None:
         cv2.imwrite(output_fn, imgwarp)
@@ -680,7 +693,7 @@ def extract_all():
                 os.makedirs(output_dir)
             output_file = output_dir + "/" + card_name + ".jpg"
             img = cv2.imread(file)
-            card_extract(img, output_file)
+            card_extract(img, output_file, crop=2)
 
 
 
@@ -692,25 +705,26 @@ def extract_all():
 
 
 
-def augment_images():
+def augment_images(number):
     print("aug")
     imgs_dir = "data/cards"
     imgs_fns = glob(imgs_dir + "/*")
     print(imgs_fns)
     for img in imgs_fns:
         print(img)
-        augment_function(img)
+        augment_function(img,number)
 
-def augment_function(img):
-    print(type(img))
-    p = Augmentor.Pipeline(img)
-    p.rotate(probability=0.7, max_left_rotation=10, max_right_rotation=10)
-    p.zoom(probability=1, min_factor=0.8, max_factor=1.5)
-    p.random_brightness(probability=0.7, min_factor=0.8, max_factor=1.2)
-    p.random_contrast(probability=0.7, min_factor=0.8, max_factor=1.2)
-    p.skew_top_bottom(probability=0.7, magnitude=0.1)
-    p.sample(1)
-    print(type(img))
+def augment_function(img,number):
+    #print(type(img))
+    p = Augmentor.Pipeline(img, output_directory='')
+    #p.rotate(probability=0.7, max_left_rotation=10, max_right_rotation=10)
+    #p.zoom(probability=1, min_factor=0.8, max_factor=1.5)
+    p.random_brightness(probability=0.9, min_factor=0.7, max_factor=1.3)
+    p.random_contrast(probability=0.9, min_factor=0.7, max_factor=1.3)
+    p.random_color(probability=0.9, min_factor=0.7, max_factor=1.3)
+    #p.skew_top_bottom(probability=0.7, magnitude=0.1)
+    p.sample(number)
+    #print(type(img,))
 
 #augment_images()
 
@@ -794,14 +808,6 @@ def findHull_imageAnalysis(img, corner):
 # #cv2.imshow("I", findHull_imageAnalysis(imghull, refCornerLR))
 # cv2.imwrite("./test/croptest.jpg",findHull_imageAnalysis(imghull, refCornerLR))
 #
-#
-
-
-
-
-
-
-
 
 
 refCard=np.array([[0,0],[cardW,0],[cardW,cardH],[0,cardH]],dtype=np.float32)
@@ -910,7 +916,7 @@ def findHull(img, corner=refCornerHL, debug="no"):
         hull = cv2.convexHull(concat_contour)
         hull_area = cv2.contourArea(hull)
         # If the area of the hull is to small or too big, there may be a problem
-        min_hull_area = 750  # TWEAK, deck and 'zoom' dependant
+        min_hull_area = 650  # TWEAK, deck and 'zoom' dependant
         max_hull_area = 1500  # TWEAK, deck and 'zoom' dependant
         if hull_area < min_hull_area or hull_area > max_hull_area:
             ok = False
@@ -1049,6 +1055,8 @@ def give_me_filename(dirname, suffixes, prefix=""):
     else:
         return fnames
 
+
+###########################################################
 "following code taken from jupyter"
 # Scenario with 2 cards:
 # The original image of a card has the shape (cardH,cardW,4)
@@ -1057,15 +1065,10 @@ def give_me_filename(dirname, suffixes, prefix=""):
 decalX = int((imgW - cardW) / 2)
 decalY = int((imgH - cardH) / 2)
 
-
 # print("decalX = int((imgW - cardW) / 2)")
 # print(decalX)
-# print(decalX + cardW)
 # print("decalY = int((imgH - cardH) / 2)")
 # print(decalY)
-# print(decalY + cardH)
-#
-
 
 # Scenario with 3 cards : decal values are different
 decalX3 = int(imgW / 2)
@@ -1156,8 +1159,21 @@ def augment(img, list_kps, seq, restart=True):
             myseq = seq
         # Augment image, keypoints and bbs
         img_aug = myseq.augment_images([img])[0]
+
         list_kps_aug = [myseq.augment_keypoints([kp])[0] for kp in list_kps]
-        list_bbs = [kps_to_BB(list_kps_aug[1]), kps_to_BB(list_kps_aug[2])]
+        # print("list_kps")
+        # print(list_kps)
+        # print("list_kps_aug")
+        # print(list_kps_aug)
+        # print(len(list_kps_aug))
+        # foo = (list_kps_aug[1])
+        # print("foo")
+        # print(foo)
+        # bar = (list_kps_aug[2])
+        #list_bbs = [kps_to_BB(list_kps_aug[1]), kps_to_BB(list_kps_aug[2])]
+        list_bbs = [kps_to_BB(list_kps_aug[1])]
+
+
         valid = True
         # Check the card bounding box stays inside the image
         for bb in list_bbs:
@@ -1185,29 +1201,37 @@ class BBA:  # Bounding box + annotations
 
 class Scene:
     """removing hullb"""
-    def __init__(self, bg, img1, class1, hulla1, img2, class2, hulla2, img3=None, class3=None,
-                 hulla3=None):
+    def __init__(self, bg, img1, class1, hulla1,
+                 img2, class2, hulla2,
+                 img3=None, class3=None, hulla3=None):
         if img3 is not None:
             self.create3CardsScene(bg, img1, class1, hulla1, img2, class2, hulla2, img3, class3, hulla3)
         else:
             self.create2CardsScene(bg, img1, class1, hulla1, img2, class2, hulla2)
 
-    def create2CardsScene(self, bg, img1, class1, hulla1, img2, class2, hulla2):
+    def create2CardsScene(self, bg, img1, class1, hulla1,
+                                    img2, class2, hulla2):
         kpsa1 = hull_to_kps(hulla1)
         kpsa2 = hull_to_kps(hulla2)
 
 
         # Randomly transform 1st card
         self.img1 = np.zeros((imgH, imgW, 4), dtype=np.uint8)
-        #adding code here
-        # here is the issue, looks like img2 might be too big.
-        # have seen issues before with size differences
-        cut = self.img1[decalY:(decalY + cardH), decalX:(decalX + cardW), :]
-        cutshape = cut.shape
-        cut1 = cutshape[0]
-        cut2 = cutshape[1]
+        self.img1.fill(255)
+        # cv2.imshow("self.img", self.img1)
+        #cv2.imshow("img1", img1)
+        #cv2.waitKey(0)4
+        # print(img1.shape)
+        # print(self.img1.shape)
 
-        self.img1[decalY:(decalY + cardH), decalX:(decalX + cardW), :] = cv2.resize(img1, (cut2,cut1))
+
+        self.img1[decalY:(decalY + cardH*4), decalX:(decalX + cardW*4), :] = img1
+
+        #self.img1[0:cardH*4, 0:cardW*4, :] = img1
+
+        # cv2.imshow("img", self.img1)
+        # cv2.waitKey(0)
+
         self.img1, self.lkps1, self.bbs1 = augment(self.img1, [cardKP, kpsa1], transform_1card)
 
         # Randomly transform 2nd card. We want that card 2 does not partially cover a corner of 1 card.
@@ -1215,14 +1239,14 @@ class Scene:
         while True:
             self.listbba = []
             self.img2 = np.zeros((imgH, imgW, 4), dtype=np.uint8)
-            self.img2[decalY:decalY + cardH, decalX:decalX + cardW, :] = img2
+            self.img2[decalY:decalY + cardH*4, decalX:decalX + cardW*4, :] = img2
             self.img2, self.lkps2, self.bbs2 = augment(self.img2, [cardKP, kpsa2], transform_1card)
 
             # mainPoly2: shapely polygon of card 2
             mainPoly2 = kps_to_polygon(self.lkps2[0].keypoints[0:4])
             invalid = False
             intersect_ratio = 0.1
-            for i in range(1, 3):
+            for i in range(1, 2):
                 # smallPoly1: shapely polygon of one of the hull of card 1
                 smallPoly1 = kps_to_polygon(self.lkps1[i].keypoints[:])
                 a = smallPoly1.area
@@ -1317,23 +1341,46 @@ class Scene:
         create_voc_xml(xml_fn, jpg_fn, self.listbba, display=display)
 
 
+
+def generate_scenes(backgrounds, cards, n):
+    nb_cards_to_generate = n
+    save_dir = "data/scenes/val"
+
+    if not os.path.isdir(save_dir):
+        os.makedirs(save_dir)
+
+    for i in tqdm(range(nb_cards_to_generate)):
+        bg = backgrounds.get_random()
+        img1, card_val1, hulla1 = cards.get_random()
+        img2, card_val2, hulla2 = cards.get_random()
+
+        newimg = Scene(bg, img1, card_val1, hulla1,
+                            img2, card_val2, hulla2)
+        newimg.write_files(save_dir)
+
 def main():
     print("main")
-    cards = Cards()
-    backgrounds = Backgrounds()
-    #pickle_this()
-    # #to extra cards from dataset
     #extract_all()
     # #to find hulls. - requires cards to be extracted.
-    # imghull = cv2.imread("./data/cards/5c/5c.jpg")
+    #augment_images(500)
+
+    # #to extra cards from dataset
+    # imghull = cv2.imread("./data/cards/10c/10c.jpg")
     # cv2.imshow("orig", imghull)
     # findHull(imghull, debug=True)
-    bg = backgrounds.get_random()
-    img1, card_val1, hulla1= cards.get_random()
-    img2, card_val2, hulla2= cards.get_random()
+    #pickle_this()
+    #cards = Cards()
+    #backgrounds = Backgrounds()
 
-    newimg = Scene(bg, img1, card_val1, hulla1, img2, card_val2, hulla2)
-    newimg.write_files("./test/")
+    #generate_scenes(backgrounds, cards, 100000)
+    #bg = backgrounds.get_random()
+    # img1, card_val1, hulla1= cards.get_random()
+    # img2, card_val2, hulla2= cards.get_random()
+    # #
+    # newimg = Scene(bg, img1, card_val1, hulla1,
+    #                      img2, card_val2, hulla2)
+    # print("image created")
+    # newimg.write_files()
 
 
 main()
