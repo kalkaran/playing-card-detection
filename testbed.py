@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+
+
 import numpy as np
 import cv2
 import os
@@ -1377,9 +1380,9 @@ def main():
     #choose a few cards to adjust settings with.
     #card_prep2("./dataset2_blackbackground/2c.jpg")
     #save acceptable settings
-    extract_all("./dataset2_blackbackground/")
+    #extract_all("./dataset2_blackbackground/")
     #create varying brightness and contrast
-    #augment_images(10)
+    #augment_images(30)
     # adjust cards now to see if the hull areas fit
     # adjust the area values in findhull  function if they are too small
     #imghull = cv2.imread("./data/cards/10c/10c.jpg")
@@ -1391,7 +1394,7 @@ def main():
     #wget https://www.robots.ox.ac.uk/~vgg/data/dtd/download/dtd-r1.0.1.tar.gz
     #tar xf dtd-r1.0.1.tar.gz dtd
 
-    #pickle_that()
+    pickle_that()
     #pickle_this()
     #cards = Cards()
     #backgrounds = Backgrounds()
