@@ -986,8 +986,9 @@ def pickle_that():
         for f in glob(subdir + "/*.jpg"):
             bg_images.append(mpimg.imread(f))
     print("Nb of images loaded :", len(bg_images))
-    print("Saved in :", backgrounds_pck_fn)
+    print("Saving in :", backgrounds_pck_fn)
     pickle.dump(bg_images, open(backgrounds_pck_fn, 'wb'))
+    print("Save Completed")
 
 
 
@@ -1018,9 +1019,9 @@ def pickle_this():
                 cards[card_name].append((img, hullHL))
             print(f"Nb images for {card_name} : {len(cards[card_name])}")
 
-    print("Saved in :", cards_pck_fn)
+    print("Saving in :", cards_pck_fn)
     pickle.dump(cards, open(cards_pck_fn, 'wb'))
-
+    print("Save Completed")
     cv2.destroyAllWindows()
 
 #Code has been modified to only find one hull. - this could be a problem,
