@@ -976,6 +976,16 @@ class Backgrounds():
         return bg
 
 
+def pickle_that():
+    dtd_dir = "./dtd/images/"
+    bg_images = []
+    for subdir in glob(dtd_dir + "/*"):
+        for f in glob(subdir + "/*.jpg"):
+            bg_images.append(mpimg.imread(f))
+    print("Nb of images loaded :", len(bg_images))
+    print("Saved in :", backgrounds_pck_fn)
+    pickle.dump(bg_images, open(backgrounds_pck_fn, 'wb'))
+
 
 
 def pickle_this():
@@ -1376,6 +1386,12 @@ def main():
     #cv2.imshow("orig", imghull)
     #findHull(imghull, debug=True,test=True)
 
+    #create pickle files of the background and the cards
+    #N.B. backgrounds must be downloaded from here:
+    #wget https://www.robots.ox.ac.uk/~vgg/data/dtd/download/dtd-r1.0.1.tar.gz
+    #tar xf dtd-r1.0.1.tar.gz dtd
+
+    #pickle_that()
     #pickle_this()
     #cards = Cards()
     #backgrounds = Backgrounds()
