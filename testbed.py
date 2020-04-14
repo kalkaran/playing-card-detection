@@ -507,10 +507,11 @@ def card_prep():
 
 
 
-def card_prep2():
+def card_prep2(imgpath):
     #img1 = cv2.imread("./dataset2_blackbackground/4d.jpg")
     #img1 = cv2.imread("./dataset2_blackbackground/As.jpg")
-    img1 = cv2.imread("./dataset2_blackbackground/2c.jpg")
+    #img1 = cv2.imread("./dataset2_blackbackground/2c.jpg")
+    img1 = cv2.imread(imgpath)
     #imgStack = stackImages(0.4, [img1, img2, img3])
     #cv2.imshow("orginal", imgStack)
 
@@ -826,7 +827,7 @@ refCornerLR=np.array([[cardW-cornerXmax,cardH-cornerYmax],
 refCorners=np.array([refCornerHL,refCornerLR])
 
 
-def findHull(img, corner=refCornerHL, debug="no"):
+def findHull(img, corner=refCornerHL, debug="no",test=False):
     """
         this function is taken from Jupyternotebook.
         Find in the zone 'corner' of image 'img' and return, the convex hull delimiting
@@ -942,9 +943,10 @@ def findHull(img, corner=refCornerHL, debug="no"):
             return None
     if ok == False:
         return None
-    # cv2.imshow("Zone", zone)
-    # cv2.imshow("Image", img)
-    # key = cv2.waitKey(0)
+    if test == True:
+        cv2.imshow("Zone", zone)
+        cv2.imshow("Image", img)
+        key = cv2.waitKey(0)
     return hull_in_img
 
 
@@ -1360,19 +1362,25 @@ def generate_scenes(backgrounds, cards, n):
 
 def main():
     print("main")
-    #extract_all()
-    # #to find hulls. - requires cards to be extracted.
-    #augment_images(500)
+    #first place cards in dataset2_blackbackground/
+    #with cardnumbersuit name
+    #choose a few cards to adjust settings with.
+    #card_prep2("./dataset2_blackbackground/2c.jpg")
+    #save acceptable settings
+    #extract_all("./dataset2_blackbackground/")
+    #create varying brightness and contrast
+    #augment_images(10)
+    # adjust cards now to see if the hull areas fit
+    # adjust the area values in findhull  function if they are too small
+    #imghull = cv2.imread("./data/cards/10c/10c.jpg")
+    #cv2.imshow("orig", imghull)
+    #findHull(imghull, debug=True,test=True)
 
-    # #to extra cards from dataset
-    # imghull = cv2.imread("./data/cards/10c/10c.jpg")
-    # cv2.imshow("orig", imghull)
-    # findHull(imghull, debug=True)
     #pickle_this()
     #cards = Cards()
     #backgrounds = Backgrounds()
 
-    #generate_scenes(backgrounds, cards, 100000)
+    # test card scene generation
     #bg = backgrounds.get_random()
     # img1, card_val1, hulla1= cards.get_random()
     # img2, card_val2, hulla2= cards.get_random()
@@ -1381,6 +1389,10 @@ def main():
     #                      img2, card_val2, hulla2)
     # print("image created")
     # newimg.write_files()
+
+
+    #generate scenes
+    #generate_scenes(backgrounds, cards, 10)
 
 
 main()
