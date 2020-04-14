@@ -677,10 +677,10 @@ def card_extract(img, output_fn=None, crop=0):
 # cv2.waitKey(0)
 
 
-def extract_all():
+def extract_all(dir):
     card_suits = ['s', 'h', 'd', 'c']
     card_values = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2']
-    dir = "dataset2_blackbackground/"
+    dir = dir
     extension = "jpg"
     imgs_dir = "data/cards"
     for suit in card_suits:
@@ -1367,7 +1367,7 @@ def main():
     #choose a few cards to adjust settings with.
     #card_prep2("./dataset2_blackbackground/2c.jpg")
     #save acceptable settings
-    #extract_all("./dataset2_blackbackground/")
+    extract_all("./dataset2_blackbackground/")
     #create varying brightness and contrast
     #augment_images(10)
     # adjust cards now to see if the hull areas fit
