@@ -1395,10 +1395,10 @@ def main():
     #wget https://www.robots.ox.ac.uk/~vgg/data/dtd/download/dtd-r1.0.1.tar.gz
     #tar xf dtd-r1.0.1.tar.gz dtd
 
-    pickle_that()
+    #pickle_that()
     #pickle_this()
-    #cards = Cards()
-    #backgrounds = Backgrounds()
+    cards = Cards()
+    backgrounds = Backgrounds()
 
     # test card scene generation
     #bg = backgrounds.get_random()
@@ -1412,7 +1412,7 @@ def main():
 
 
     #generate scenes
-    #generate_scenes(backgrounds, cards, 10)
+    generate_scenes(backgrounds, cards, 5000)
 
 
 main()
