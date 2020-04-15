@@ -515,6 +515,13 @@ def card_prep2(imgpath):
     #img1 = cv2.imread("./dataset2_blackbackground/As.jpg")
     #img1 = cv2.imread("./dataset2_blackbackground/2c.jpg")
     img1 = cv2.imread(imgpath)
+
+    ylength = int(img1.shape[0]/8)
+    xlength = int(img1.shape[1]/8)
+    img1 = cv2.resize(img1,(xlength,ylength))
+
+
+
     #imgStack = stackImages(0.4, [img1, img2, img3])
     #cv2.imshow("orginal", imgStack)
 
