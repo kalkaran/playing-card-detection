@@ -1396,8 +1396,8 @@ def main():
 
     #pickle_that()
     #pickle_this()
-    cards = Cards()
-    backgrounds = Backgrounds()
+    #cards = Cards()
+    #backgrounds = Backgrounds()
 
     # test card scene generation
     #bg = backgrounds.get_random()
@@ -1411,7 +1411,17 @@ def main():
 
 
     #generate scenes
-    generate_scenes(backgrounds, cards, 5000)
+    #generate_scenes(backgrounds, cards, 5000)
+
+    ## In case you want to train YOLO with the generated datasets
+    # YOLO cannot directly exploit the Pascal VOC annotations files.
+    # You need to convert the xml files in txt files accordingly to the syntax explained here:
+    # https://github.com/AlexeyAB/darknet#how-to-train-to-detect-your-custom-objects
+    # The script 'convert_voc_yolo.py' makes this conversion and also generates
+    # the txt file that contains all the images of the dataset
+
+    # !python convert_voc_yolo.py data/scenes/val data/cards.names data/val.txt
+    # python convert_voc_yolo.py data/scenes/train data/cards.names data/train.txt
 
 
 main()
