@@ -1022,7 +1022,6 @@ def pickle_this():
     print("Saving in :", cards_pck_fn)
     pickle.dump(cards, open(cards_pck_fn, 'wb'))
     print("Save Completed")
-    cv2.destroyAllWindows()
 
 #Code has been modified to only find one hull. - this could be a problem,
 # as it means positioning the cards could be harder.
